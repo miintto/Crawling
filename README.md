@@ -1,4 +1,4 @@
-﻿네이버 영화 평점 Crawling
+﻿[네이버 영화 평점 Crawling]
 ==========
 
 
@@ -24,6 +24,7 @@ https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after
 그 프레임의 주소가 위와 같다.
 또한 주어진 url로 접속하게 되면 평점 창으로만 들어가게 된다.
 
+----------
 
 ## 1.2 html 소스 분석
 
@@ -47,8 +48,6 @@ https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after
 	<link rel="stylesheet" type="text/css" href="[/css/movie_tablet.css?20180329144629](https://movie.naver.com/css/movie_tablet.css?20180329144629)" />
 	<link rel="stylesheet" type="text/css" href="[/css/movie_end.css?20180329144629](https://movie.naver.com/css/movie_end.css?20180329144629)" />
 	...
-
-**"이곳에서 내가 원하는 텍스트가 어느 위치에 있는지 파악하는게 매우 중요하다!"**
 
 필자는 html에 대해 무지하지만 html 구조가 여는 태그 <>, 닫는 태그 </>가 반복되면서 구성된다는건 익히 들어 알고 있다.
 이정도 개념만 알고있어도 크롤링엔 크게 문제될건 없다고 본다.
@@ -84,9 +83,15 @@ https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after
 	...
 
 \<li>과 \</li> 사이에 코멘트와 평점이 담겨있음을 알 수 있다.
+더 자세히 살펴보면 평점은 \<div class="star_score"> 안의 \<em>\</em>사이에 위치한다.
+긴 문장이 아니라서 발견하기 힘들수도 있다....
+또한 코멘트는 \<div class="score_reple">안의 \<p>\</p> 사이에 위치한다.
+**이런식으로 내가 원하는 텍스트가 어느 위치에 있는지 파악하는게 매우 중요하다!**
 
-# 3. 크롤링 (feat. Python 3)
-## 3.1 코드 구조 분석
+----------
+
+# 2. 크롤링 (feat. Python 3)
+## 2.1 코드 구조 분석
 
 이젠 파이썬을 이용해 크롤링을 해보도록 하자.
 
@@ -108,6 +113,7 @@ urllib는 웹에서 html 소스를 불러올때 사용된다.
 먼저 url변수에 영화 평점 페이지의 주소를 넣어주었다.
 urlopen()은 해당 페이지에 대한 정보를 가져오는 역할을 한다.
 따라서 response에는 지정한 주소의 데이터가 들어있는데, BeautifulSoup()로 html데이터를 파싱하여 안에 담긴 페이지 소스를 뽑아올 수 있다.
+**용어가 어려우면 크롤링하고자 하는 html 페이지의 소스를 가져오는 코드라고 생각하면 편하다.**
 
 >soup를 직접 출력해보면 위에서 확인했었던 페이지 소스와 동일한 소스가 출력됨을 알 수 있다.
 
@@ -128,7 +134,7 @@ urlopen()은 해당 페이지에 대한 정보를 가져오는 역할을 한다.
 			....
 	</div>
 
->간단히 살펴보면 대략 이런식의 구조라고 할수 있다.
+>간단히 설명하자면 대략 이런식의 구조라고 할수 있다.
 
 이제 저 부분에서 \<div>\</div>사이에 있는 부분만 가져오려고 한다.
 class="score_result" 는 해당 \<div>의 이름 정도로 생각하면 편하다.
@@ -144,30 +150,26 @@ find_all()은 주어진 조건에 알맞은 부분을 모두 찾아 벡터 형�
 
 >첫번째 도막 lis[0]을 출력해보면 html 소스 분석에서 보여진  \<li>\</li>안의 내용과 동일한 소스가 출력되게 된다.
 
-
-
 이젠 해당 소스에서 텍스트만 출력해보자.
-
-평점은 \<div class="star_score"> 안의 \<em>\</em>사이에 위치한다.
-긴 문장이 아니라서 발견하기 힘들수도 있다....
-또한 코멘트는 \<div class="score_reple">안의 \<p>\</p> 사이에 위치한다.
-
-다음 코드를 이용해 제일 처음 평점만 가져와보자.
+위에서 확인했듯이 각각 \<div class="star_score">와  \<div class="score_reple">안에 위치했었다.
+다음 코드를 이용해보면.
 
 	score = lis[0].select_one('div.star_score > em')
     reple = lis[0].select_one('div.score_reple > p')
+    
 select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안의 부분을 불러오는 명령이다.
-하지만 이 상태로 출력을 하게 되면
+이 상태로 출력을 하게 되면 다음과 같다.
 
 >\<em>10\</em>
 >\<p>\<span class="ico_best">BEST\</span>\<span class="ico_viewer">관람객\</span>이정재가 홍보 따라다닌 이유를 알겠음 ㅋㅋㅋ 그리고 관심병사 연기 도랐다  \</p>
 
-아직 태그가 제거되지 않아 이렇게 나타나게 된다.
+코드가 거의 다 완성되어간다.
+하지만 아직 태그가 제거되지 않아 이렇게 나타나게 된다.
 이럴땐 get_text()함수를 이용하여 텍스트만 뽑아줄 수 있다.
 
 적용해보면 다음과 같다.
 
-    print('평점 :',  score.get_text())
+    print('평점 :', score.get_text())
     print('리뷰 :', reple.get_text())
 >10 
 >BEST관람객이정재가 홍보 따라다닌 이유를 알겠음 ㅋㅋㅋ 그리고 관심병사 연기 도랐다
@@ -176,12 +178,9 @@ select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안�
 
 이를 좀더 응용하면
 
-	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='
-	num = 85579
-	url2 = '&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page='
-	page = 1
+	url = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page=1
 	
-	response = req.urlopen(url1+str(num)+url2+str(page))
+	response = req.urlopen(url)
 	print(response)soup = BeautifulSoup(response, 'html.parser')
 	score_result = soup.find('div', class_ = 'score_result')
 	lis = score_result.find_all('li')
@@ -215,3 +214,86 @@ select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안�
 
 와 같이 크롤링이 가능하다.
 
+## 2.2 코드 응용(1) 모든 페이지의 댓글 크롤링 
+
+좀더 응용해서 모든 페이지의 댓글을 크롤링해보자.
+
+우선 마지막 페이지 번호를 가져와보자.
+**총 댓글 개수를 가져와 10으로 나누어주고 소숫점은 올려주는 방식으로 페이지의 개수를 계산하려고 한다.**
+자신이 필요한 평점의 갯수가 1000개 정도로 정해져 있거나 특정 영화만 분석할 경우에는 굳이 이런 코드가 필요가 없겠지만, 
+여러 영화의 평점을 동시에 가져오는 경우라면 이런 코드가 휠씬 편리할 것이다.
+
+마찬가지로 첫 페이지의 소스를 가져온다.
+
+	url = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page=1'
+	
+    response = req.urlopen(url)
+    soup = BeautifulSoup(response, 'html.parser')
+
+이제 댓글 전체 개수를 가져와야 하는데 아래 소스와 같이 \<strong class="total"> 안에서 두번째 \<em>에 위치하게 된다.
+
+	...
+	<div class="score_total">
+		<strong class="total"><span class="tit"><em class="blind">140자 평</em></span><span class="sp">|</span>총<em>55,536</em>건</strong>
+
+		<div class="best_score_info _bestPointHelp">
+	....
+
+따라서 같은 방식으로 전체 개수를 가져오게 되면
+
+    score_total = soup.find('div', class_ = 'score_total')
+    limit = score_total.find_all('em')[1]
+    print(limit.get_text())
+   >55,536
+ 
+위와 같이 출력이 된다.
+ 
+여기서 주의할 점은 출력된 숫자는 숫자형이 아니라 문자형이기 때문에 나눗셈과 같은 사칙연산이 불가능하다. 따라서 다음과 같은 과정을 통해 좀 더 가공이 필요하다.
+
+	import math
+	
+    page_limit = int(limit.get_text().replace(',', ''))
+    page_limit = math.ceil(page_limit/10)
+    print(page_limit)
+   >5554
+
+math 라이브러리는 소숫점 올림 연산을 하기위해 불러왔다.
+
+replace()함수를 이용해 콤마를 제거해준다. 이 과정이 없으면 숫자로 변형이 안된다.
+그리고 숫자형으로 불러온뒤 10으로 나누어 준다. ceil()함수는 math 라이브러리 안에 있는 소숫점 올림 연산을 해주는 함수이다.
+
+이제 마지막 페이지도 알아냈으니 해당 범위 안에서 평점들을 모두 뽑아내기만 하면 된다.
+그러기 위해서는 url을 두개로 나누어준다.
+
+	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page='
+	num = i
+	
+	url = url1+str(num)
+
+위와 같은 방식으로 나누어준 뒤 num 변수를 1부터 위에서 계산한 마지막까지 돌려주기만 하면 된다.
+
+	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page='
+	
+    for num in range(1, page_limit+1):
+        response = req.urlopen(url1+str(num))
+        soup = BeautifulSoup(response, 'html.parser')
+        score_result = soup.find('div', class_ = 'score_result')
+        lis = score_result.find_all('li')
+        
+        for li in lis:
+            score = li.select_one('div.star_score > em')
+            reple = li.select_one('div.score_reple > p')
+            print(score.get_text(), ' , ', reple.get_text(), '\n')
+            
+>10  ,  BEST관람객이정재가 홍보 따라다닌 이유를 알겠음 ㅋㅋㅋ 그리고 관심병사 연기 도랐다   
+>10  ,  BEST관람객나 죽어서 지옥가면 어떡하냐 ㄷㄷㄷ 앞으로 착하게 살아야지   
+>10  ,  BEST관람객남자 셋이서 안 울라고…주먹으로 입틀막함 ㅋㅋㅋㅋ   
+>10  ,  BEST관람객여보, 이번 겨울에… 부모님댁에 밥솥 놔드려야겠어요   
+>10  ,  BEST관람객가족이랑 봤는데… 나… 우리 아빠 우는 거 처음 봤음 ㅜㅜㅜㅜ   
+>8  ,  관람객오늘도 열심히 사는 대한민국의 자홍,수홍씨들을 응원합니다 ㅠㅠ   
+>10  ,  야 이거 생각한 것 보다 잘 나왔잖아 ?   
+>10  ,  관람객오늘 화장 안하고 신과함께를 본 것은 신의한수였음.
+>
+> ...
+
+나중에 데이터 처리하기 편하도록 콤마로 나누어 출력했다.
