@@ -269,7 +269,7 @@ replace()함수를 이용해 콤마를 제거해준다. 이 과정이 없으면 
 그리고 숫자형으로 불러온뒤 10으로 나누어 준다. ceil()함수는 math 라이브러리 안에 있는 소숫점 올림 연산을 해주는 함수이다.
 
 이제 마지막 페이지도 알아냈으니 해당 범위 안에서 평점들을 모두 뽑아내기만 하면 된다.
-그러기 위해서는 url을 두개로 나누어준다.
+그러기 위해서는 **url을 두 개로 나누어주어야 한다.**
 
 	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page='
 	num = i
@@ -336,14 +336,16 @@ open() 함수는 텍스트 파일을 불러오는 함수다.
 		    score = li.select_one('div.star_score > em')
 	        reple = li.select_one('div.score_reple > p')
 	        f.write(score.get_text()+' , '+reple.get_text()+'\n')
-    f.close 
-**달라진 부분은 print() 부분이 그대로 f,write()로 바뀌어졌다는것 뿐이다.** 그러면 원래 출력될 부분이 그대로 텍스트 파일로 들어가게 된다.
+    f.close
+    
+**달라진 부분은 print() 부분이 그대로 f.write()로 바뀌어졌다는것 뿐이다.** 그러면 원래 출력될 부분이 그대로 텍스트 파일로 들어가게 된다.
 마지막에 f.close로 입력을 끝내준다.
+
 ----------
 
 ## 2.4 다수의 영화 평점 크롤링
 
-이젠 여러 영화로 넓혀보자.
+이젠 다른 영화의 평점도 함께 출력해보자.
 
 예시로 5개의 영화와 영화 코드번호를 가져왔다. 개인적으로 더 돌리고 싶으면 더 돌려도 된다. (대신 시간이 좀 오래걸린다....)
 
@@ -351,7 +353,7 @@ open() 함수는 텍스트 파일을 불러오는 함수다.
 	신과함께, 아가씨, 라라랜드, 리얼, 블랙팬서, 범죄도시
 
 각 영화마다 텍스트 파일을 따로 분류해서 저장하려고 한다.
-이번에는 url주소를 4개의 조각으로 나누어야 한다.
+이번에는**url주소를 4개의 조각으로 나누어야 한다.**
 
 	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='
 	num1 = movies
@@ -388,4 +390,5 @@ open() 함수는 텍스트 파일을 불러오는 함수다.
 	    f.close
 
 제목을 출력하는 코드는 따로 설명하지 않았지만 여기까지 내용을 이해했다면 크게 문제없을거라고 생각한다.
-실행이 다 끝나면 텍스트 파일을 열어서 빠짐 없이 내보내졌는지 꼼꼼히 확인해보자!
+
+**실행이 다 끝나면 텍스트 파일을 열어서 빠짐 없이 내보내졌는지 꼼꼼히 확인해보자!**
