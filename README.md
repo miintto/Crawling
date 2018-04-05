@@ -1,4 +1,4 @@
-﻿[네이버 영화 평점 Crawling]
+﻿[네이버 영화 평점 크롤링 (feat. Python 3)]
 ==========
 
 
@@ -89,8 +89,9 @@ https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after
 **이런식으로 내가 원하는 텍스트가 어느 위치에 있는지 파악하는게 매우 중요하다!**
 
 ----------
+----------
 
-# 2. 크롤링 (feat. Python 3)
+# 2. 크롤링
 ## 2.1 코드 구조 분석
 
 이젠 파이썬을 이용해 크롤링을 해보도록 하자.
@@ -101,8 +102,9 @@ https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code=85579&type=after
 	import urllib.request as req
 	import math
 
-BeautifulSoup는 html 데이터를 파싱 및 탐색하는 함수를 포함하고 있다.
-urllib는 웹에서 html 소스를 불러올때 사용된다.
+**BeautifulSoup**는 html 데이터를 파싱 및 탐색하는 함수를 포함하고 있다.
+**urllib**는 웹에서 html 소스를 불러올때 사용된다.
+둘 다 필요하니 꼭 설치해두자.
 
 이제 해당 url에서 html소스를 뽑아올 차례이다.
 
@@ -148,7 +150,9 @@ find_all()은 주어진 조건에 알맞은 부분을 모두 찾아 벡터 형�
 
 결과적으로 보면 score_result안에는 \<div class="score_result">\</div>안에 담겨있는 모든 코멘트들이 담겨있고, lis안에는 평점을 포함하고 있는 \<li>\</li>들이 한 도막씩 벡터형태로 저장되어 있다. (한 페이지에 평점이 10개씩 있으니 10개의 \<li>\</li>단위가 나열되어 었는 셈이다.)
 
->첫번째 도막 lis[0]을 출력해보면 html 소스 분석에서 보여진  \<li>\</li>안의 내용과 동일한 소스가 출력되게 된다.
+>lis = [\<li> 평점1 \</li>, \<li> 평접2 \</li>, \<li> 평점3 \</li>, ... , \<li> 평점10 \</li>]
+>이런 식으로 저장되어있다. 
+>위에서 \<li> 평점 \</li>라고 간략히 썼지만 사실은 다양한 태그로 조합된 복잡한 소스다.
 
 이젠 해당 소스에서 텍스트만 출력해보자.
 위에서 확인했듯이 각각 \<div class="star_score">와  \<div class="score_reple">안에 위치했었다.
@@ -171,8 +175,8 @@ select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안�
 
     print('평점 :', score.get_text())
     print('리뷰 :', reple.get_text())
->10 
->BEST관람객이정재가 홍보 따라다닌 이유를 알겠음 ㅋㅋㅋ 그리고 관심병사 연기 도랐다
+>평점 : 10 
+>리뷰 : BEST관람객이정재가 홍보 따라다닌 이유를 알겠음 ㅋㅋㅋ 그리고 관심병사 연기 도랐다
 
 이런식으로 가능하다.
 
@@ -214,7 +218,9 @@ select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안�
 
 와 같이 크롤링이 가능하다.
 
-## 2.2 코드 응용(1) 모든 페이지의 댓글 크롤링 
+----------
+
+## 2.2 모든 페이지의 평점 크롤링 
 
 좀더 응용해서 모든 페이지의 댓글을 크롤링해보자.
 
@@ -296,4 +302,35 @@ replace()함수를 이용해 콤마를 제거해준다. 이 과정이 없으면 
 >
 > ...
 
-나중에 데이터 처리하기 편하도록 콤마로 나누어 출력했다.
+나중에 데이터 처리하기 편하도록 평점과 리뷰사이는 콤마로 나누어 출력했다.
+
+----------
+## 2.3 텍스트 파일로 내보내기
+
+이제는 가져온 자료들을 텍스트 파일로 내보낼 차례이다.
+
+	f = open('Movie_Comment.txt', 'w')
+
+open() 함수는 텍스트 파일을 불러오는 함수다.
+뒤에 붙은 w는 명령어인데 텅 빈 턱스트 파일을 불러오고 텍스트를 입력하게 해준다.
+단순히 입력된 데이터를 가져오는 경우라면 w대신 r을 넣어주면 된다.
+**종합하자면, Movie_Comment.txt 라는 텍스트 파일을 생성하고 f에 불러와서 내용을 입력하게 해주는 내용이다.**
+
+그 다음 진행할 내용은 전 단계와 비슷하다.
+
+	url = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page=1
+	
+	response = req.urlopen(url)
+	print(response)soup = BeautifulSoup(response, 'html.parser')
+	score_result = soup.find('div', class_ = 'score_result')
+	lis = score_result.find_all('li')
+	
+
+	for li in lis:
+	    score = li.select_one('div.star_score > em')
+        reple = li.select_one('div.score_reple > p')
+        f.write(score.get_text()+' , '+reple.get_text()+'\n')
+    f.close 
+**달라진 부분은 print() 부분이 그대로 f,write()로 바뀌어졌다는것 뿐이다.** 그러면 원래 출력될 부분이 그대로 텍스트 파일로 들어가게 된다.
+마지막에 f.close로 입력을 끝내준다.
+실행이 다 끝나면 텍스트 파일을 열어서 빠짐 없이 내보내졌는지 꼼꼼히 확인해보자!
