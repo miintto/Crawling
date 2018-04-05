@@ -248,8 +248,8 @@ select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안�
 따라서 같은 방식으로 전체 개수를 가져오게 되면
 
     score_total = soup.find('div', class_ = 'score_total')
-    limit = score_total.find_all('em')[1]
-    print(limit.get_text())
+    Count = score_total.find_all('em')[1]
+    print(Count.get_text())
    >55,536
  
 위와 같이 출력이 된다.
@@ -258,7 +258,7 @@ select_one()의 구조도 보면 알겠지만 해당 div 안에 em이나 p 안�
 
 	import math
 	
-    page_limit = int(limit.get_text().replace(',', ''))
+    page_limit = int(Count.get_text().replace(',', ''))
     page_limit = math.ceil(page_limit/10)
     print(page_limit)
    >5554
@@ -318,19 +318,74 @@ open() 함수는 텍스트 파일을 불러오는 함수다.
 
 그 다음 진행할 내용은 전 단계와 비슷하다.
 
-	url = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page=1
-	
-	response = req.urlopen(url)
-	print(response)soup = BeautifulSoup(response, 'html.parser')
-	score_result = soup.find('div', class_ = 'score_result')
-	lis = score_result.find_all('li')
-	
+	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='85579&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page='
+    response = req.urlopen(url1+'1')
+    soup = BeautifulSoup(response, 'html.parser')
+    score_total = soup.find('div', class_ = 'score_total')
+    Count = score_total.find_all('em')[1]
+    page_limit = int(Count.get_text().replace(',', ''))
+    page_limit = math.ceil(page_limit/10)
 
-	for li in lis:
-	    score = li.select_one('div.star_score > em')
-        reple = li.select_one('div.score_reple > p')
-        f.write(score.get_text()+' , '+reple.get_text()+'\n')
+	for num in range(1, page_limit+1):
+		response = req.urlopen(url1+str(num))
+		print(response)soup = BeautifulSoup(response, 'html.parser')
+		score_result = soup.find('div', class_ = 'score_result')
+		lis = score_result.find_all('li')
+	
+		for li in lis:
+		    score = li.select_one('div.star_score > em')
+	        reple = li.select_one('div.score_reple > p')
+	        f.write(score.get_text()+' , '+reple.get_text()+'\n')
     f.close 
 **달라진 부분은 print() 부분이 그대로 f,write()로 바뀌어졌다는것 뿐이다.** 그러면 원래 출력될 부분이 그대로 텍스트 파일로 들어가게 된다.
 마지막에 f.close로 입력을 끝내준다.
+----------
+
+## 2.4 다수의 영화 평점 크롤링
+
+이젠 여러 영화로 넓혀보자.
+
+예시로 5개의 영화와 영화 코드번호를 가져왔다. 개인적으로 더 돌리고 싶으면 더 돌려도 된다. (대신 시간이 좀 오래걸린다....)
+
+	movies = [85579, 123519, 134963, 137008, 137326, 158885]
+	신과함께, 아가씨, 라라랜드, 리얼, 블랙팬서, 범죄도시
+
+각 영화마다 텍스트 파일을 따로 분류해서 저장하려고 한다.
+이번에는 url주소를 4개의 조각으로 나누어야 한다.
+
+	url1 = 'https://movie.naver.com/movie/bi/mi/pointWriteFormList.nhn?code='
+	num1 = movies
+	url2 = '&type=after&isActualPointWriteExecute=false&isMileageSubscriptionAlready=false&isMileageSubscriptionReject=false&page='
+	num2 = i
+
+텍스트 파일 이름은 Movie_85579.txt 같은 식으로 영화마다 다르게 지정해 주었다.
+텍스트 파일마다 제일 처음에 제목을 내보내고, 그 다음부터 평점과 리뷰를 넣으려고 한다. 
+
+	for num1 in movies:
+	    f = open('Movie_'+str(num1)+'.txt', 'w')
+	    response = req.urlopen('https://movie.naver.com/movie/bi/mi/point.nhn?code='+str(num1))
+	    soup = BeautifulSoup(response, 'html.parser')
+	    title = soup.select_one('title').get_text()
+	    f.write(title+'\n\n')   ### 영화 제목 출력
+    
+	    response = req.urlopen(url1+str(num1)+url2+'1')
+	    soup = BeautifulSoup(response, 'html.parser')
+	    score_total = soup.find('div', class_ = 'score_total')
+	    Count = score_total.find_all('em')[1]
+	    page_limit = int(Count.get_text.replace(',', ''))
+	    page_limit = math.ceil(page_limit/10)
+	    
+	    for num2 in range(1, page_limit+1):
+	        response = req.urlopen(url1+str(num1)+url2+str(num2))
+	        soup = BeautifulSoup(response, 'html.parser')
+	        score_result = soup.find('div', class_ = 'score_result')
+	        lis = score_result.find_all('li')
+        
+	        for li in lis:
+	            score = li.select_one('div.star_score > em')
+	            reple = li.select_one('div.score_reple > p')
+	            f.write(score.get_text()+' , '+reple.get_text()+'\n')
+	    f.close
+
+제목을 출력하는 코드는 따로 설명하지 않았지만 여기까지 내용을 이해했다면 크게 문제없을거라고 생각한다.
 실행이 다 끝나면 텍스트 파일을 열어서 빠짐 없이 내보내졌는지 꼼꼼히 확인해보자!
